@@ -1,0 +1,215 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محرر الأكواد</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+        body {
+            background-color: #222;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .tabs {
+            display: flex;
+            background: #007bff;
+            padding: 10px;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background 0.3s;
+        }
+        .tab:hover, .tab.active {
+            background: #0056b3;
+        }
+        .editor {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            overflow: hidden;
+        }
+        textarea {
+            flex: 1;
+            width: 100%;
+            background: #333;
+            color: #0f0;
+            font-size: 16px;
+            padding: 10px;
+            border: none;
+            resize: none;
+            outline: none;
+            border-radius: 5px;
+        }
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            padding: 10px;
+            background: #444;
+            justify-content: center;
+        }
+        .toolbar button {
+            background: #666;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 4px;
+            transition: 0.3s;
+        }
+        .toolbar button:hover {
+            background: #888;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: #007bff;
+        }
+        button {
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: 0.3s;
+        }
+        button:hover {
+            background: #218838;
+        }
+        .output {
+            width: 100%;
+            height: 100vh;
+            display: none;
+            position: relative;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .back-button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #dc3545;
+        }
+        .back-button:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="tabs">
+        <div class="tab active" onclick="showTab('html')">HTML</div>
+        <div class="tab" onclick="showTab('css')">CSS</div>
+        <div class="tab" onclick="showTab('js')">JavaScript</div>
+    </div>
+
+    <div class="editor">
+        <textarea id="htmlInput" class="code-area active" placeholder="أدخل كود HTML هنا..."></textarea>
+        <textarea id="cssInput" class="code-area" style="display: none;" placeholder="أدخل كود CSS هنا..."></textarea>
+        <textarea id="jsInput" class="code-area" style="display: none;" placeholder="أدخل كود JavaScript هنا..."></textarea>
+    </div>
+
+    <div class="toolbar">
+        <button onclick="insertText('+')">+</button>
+        <button onclick="insertText('-')">-</button>
+        <button onclick="insertText('*')">*</button>
+        <button onclick="insertText('/')">/</button>
+        <button onclick="insertText('(')">(</button>
+        <button onclick="insertText(')')">)</button>
+        <button onclick="insertText('{')">{</button>
+        <button onclick="insertText('}')">}</button>
+        <button onclick="insertText('[')">[</button>
+        <button onclick="insertText(']')">]</button>
+        <button onclick="insertText(';')">;</button>
+        <button onclick="insertText(':')">:</button>
+        <button onclick="insertText('&lt;')">&lt;</button>
+        <button onclick="insertText('&gt;')">&gt;</button>
+        <button onclick="insertText('#')">#</button>
+        <button onclick="insertText('&quot;')">"</button>
+        <button onclick="insertText('&#39;')">'</button>
+    </div>
+
+    <div class="buttons">
+        <button onclick="renderCode()">عرض الأكواد</button>
+    </div>
+
+    <div class="output">
+        <button class="back-button" onclick="goBack()">رجوع</button>
+        <iframe id="resultFrame"></iframe>
+    </div>
+
+    <script>
+        function showTab(tab) {
+            document.querySelectorAll('.code-area').forEach(area => area.style.display = 'none');
+            document.querySelectorAll('.tab').forEach(tabElement => tabElement.classList.remove('active'));
+            document.getElementById(tab + 'Input').style.display = 'block';
+            event.target.classList.add('active');
+        }
+
+        function insertText(symbol) {
+            let activeTextArea = document.querySelector('.code-area[style="display: block;"]');
+            if (activeTextArea) {
+                let start = activeTextArea.selectionStart;
+                let end = activeTextArea.selectionEnd;
+                let text = activeTextArea.value;
+                activeTextArea.value = text.slice(0, start) + symbol + text.slice(end);
+                activeTextArea.focus();
+                activeTextArea.selectionStart = activeTextArea.selectionEnd = start + symbol.length;
+            }
+        }
+
+        function renderCode() {
+            const htmlCode = document.getElementById('htmlInput').value;
+            const cssCode = document.getElementById('cssInput').value;
+            const jsCode = document.getElementById('jsInput').value;
+
+            if (!htmlCode && !cssCode && !jsCode) {
+                alert("الرجاء إدخال كود على الأقل.");
+                return;
+            }
+
+            const combinedCode = `
+                <style>${cssCode}</style>
+                ${htmlCode}
+                <script>${jsCode}<\/script>
+            `;
+
+            const iframe = document.getElementById('resultFrame');
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            iframeDoc.open();
+            iframeDoc.write(combinedCode);
+            iframeDoc.close();
+
+            document.body.style.display = 'none';
+            document.querySelector('.output').style.display = 'block';
+        }
+
+        function goBack() {
+            document.body.style.display = 'flex';
+            document.querySelector('.output').style.display = 'none';
+        }
+    </script>
+
+</body>
+</html>
